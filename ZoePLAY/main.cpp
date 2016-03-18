@@ -45,13 +45,6 @@ key KEY03;
 
 EEPROM EEPROM01;
 
-
-
-
-
-//CAN_screen02 SCR02;
-//CAN_screen03 SCR03;
-
 char string[20];
 uint8_t count_100ms = 0;
 uint8_t old_count100ms = 0;
@@ -64,16 +57,16 @@ uint8_t Act_StreamSIZE;
 
 int main(void)
 {
+   
+	DDRB |= (1<<PB0);  // Relays on Pin PB0 as Output
+	PORTB |= (1<<PB0); // switch Relays on	
 
-    DDRB |= (1<<PB0);
-	PORTB |= (1<<PB0); // toggle pin	
-    // initialize the Timer for fast scheduler 10ms
-
-    TCCR1A = 0;
+	// initialize the Timer for fast scheduler 10ms
+	TCCR1A = 0;
 	TCCR1B |= _BV (1);       // CC11 setzt prescaler 8
 	TCCR1B |= _BV (3);       // WGM12
 	OCR1A = 20000;           // Compare Wert 20000-Prescale 8 = 10ms
-    TIMSK1 |= _BV (OCIE1A);  // Interrupt für Compare Timer 1 freigeben
+	TIMSK1 |= _BV (OCIE1A);  // Interrupt für Compare Timer 1 freigeben
 
 
     // initialize timer0 in PWM mode for back light
@@ -81,13 +74,7 @@ int main(void)
     // make sure to make OC0 pin (pin PB3 for AT90CAN128) as output pin
     DDRB |= (1<<PB7); 
 	OCR0A =  50; // brightness for back light.
-    // Relais am Pin PB0 als Output	and on
 
-	
-	
-	
-
-	
 	DOG.init();
     CAN1.init();
     KEY01.init(&Taster1, Taster1_dir, Taster1_pin);
@@ -98,19 +85,16 @@ int main(void)
     MEM01.picture(0,0,zoe_logo_inv);
 	MEM01.send(DOG);
 	
-
 	_delay_ms(2000);
     MEM01.clear();
 	screen_nr = 1;
-	sei ();                  // Interrupt Freigabe global
-	
+	sei ();                  // Interrupt release global
 	
    while (1)
    {
 		if (old_count100ms != count_100ms)
 		{
 			old_count100ms = count_100ms;
-		
 			switch (screen_nr)
 			{
 				case 1: SCR01.update(CAN1,MEM01);
@@ -127,8 +111,6 @@ int main(void)
 						{
 							CAN1.Can_FlowControl_TP(tpCell1);
 						}
-
-
 				break;
 				case 3: SCR03.update(CAN1,MEM01);
 				break;
@@ -156,32 +138,10 @@ int main(void)
 			if (KEY03.get_duration()>0) OCR0A-=5;
 			if (KEY01.get_duration()>0) OCR0A+=5;
 			
-			
-
-// alive...            
-//			dtostrf(old_count100ms,3,0,string);
-//			MEM01.string(110,60,font_4x6,string);
-			
 			MEM01.send(DOG);
-			
 		}
 		
-//	Taster_test = 0;
-//	if (!(Taster1 & 1<<Taster1_pin) && Taster1_stored ) CAN1._go_= 1;
-	
-// 	Taster1_stored = (Taster1 & 1<<Taster1_pin);
-	
-//	if (!(Taster2 & 1<<Taster2_pin))  {Taster_test += 2;}
-//	if (!(Taster3 & 1<<Taster3_pin))  {Taster_test += 3;}
-	
-//	itoa(Taster1_stored,string,2);
-//	DOG.string(7,0,font_6x8,string);
-	
-//	dtostrf(Taster_test,8,0,string);
-//	DOG.string(6,0,font_6x8,string);
-
     _delay_us(1);
-	
    }
 }
 
@@ -192,7 +152,6 @@ ISR(TIMER1_COMPA_vect)
 			  KEY02.update();
 			  KEY03.update();
 			  SCR01.update10ms(CAN1);
-			  
 		  
 	  		  count_10ms++;
 			  if (count_10ms == 10)
@@ -201,8 +160,6 @@ ISR(TIMER1_COMPA_vect)
 				  count_100ms++;
 			  }
 			  if (CAN1.CAN_OFF_Count > 100) PORTB &= ~(1<<PB0);  // Switch of after 1s with no new CAN message.
-
-
 }
 
 ISR(CANIT_vect)
@@ -212,7 +169,6 @@ ISR(CANIT_vect)
 	  if (CANSIT1 & (1<<SIT13))         //  only Interrupt on MOB 13 is for transport protocol RX
 	  {
 			CANPAGE = (13<<4);          //  set CAN Page 13 (reserved for receive transport protocol).
-		        
 		    if (CANSTMOB & (1<<RXOK))   //  receive OK
 		    {
 				CAN1.store(Ptr_Stream, Act_StreamSIZE);	//  store the received messages into buffer
@@ -220,21 +176,16 @@ ISR(CANIT_vect)
 			    CAN1.Int_count++;       //  count all receive Interrupts  
 		    }
 		    CANPAGE = save_canpage;     //  restore CANPAGE
-
 	  }
 	  
       if (CANSIT1 & (1<<SIT14))         //  only Interrupt on MOB 14 is for transport protocol TX
 	  { 
 		  CANPAGE = (14<<4);            //  set CAN Page 14 (reserved for transmit transport protocol). 
-	  
 		  if (CANSTMOB & (1<<TXOK))     //  transmit OK
 	      {
 			  CANSTMOB &= ~(1<<TXOK);	//  reset INT reason
 			  CAN1.Int_count++;         //  count all transmit Interrupts
 		  }
 		  CANPAGE = save_canpage;       //  restore CANPAGE
-
 	  }
-
-   
 }

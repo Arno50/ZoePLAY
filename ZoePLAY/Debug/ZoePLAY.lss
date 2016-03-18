@@ -19,15 +19,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   7 .debug_abbrev 0000043d  00000000  00000000  00008134  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_line   000016c3  00000000  00000000  00008571  2**0
+  8 .debug_line   000016bc  00000000  00000000  00008571  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_frame  00000760  00000000  00000000  00009c34  2**2
+  9 .debug_frame  00000760  00000000  00000000  00009c30  2**2
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_str    00000ba1  00000000  00000000  0000a394  2**0
+ 10 .debug_str    00000ba1  00000000  00000000  0000a390  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_loc    00003d40  00000000  00000000  0000af35  2**0
+ 11 .debug_loc    00003d40  00000000  00000000  0000af31  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_ranges 00000168  00000000  00000000  0000ec75  2**0
+ 12 .debug_ranges 00000168  00000000  00000000  0000ec71  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -3037,14 +3037,14 @@ uint8_t Act_StreamSIZE;
 
 int main(void)
 {
-
-    DDRB |= (1<<PB0);
+   
+	DDRB |= (1<<PB0);  // Relays on Pin PB0 as Output
     1dee:	20 9a       	sbi	0x04, 0	; 4
-	PORTB |= (1<<PB0); // toggle pin	
+	PORTB |= (1<<PB0); // switch Relays on	
     1df0:	28 9a       	sbi	0x05, 0	; 5
-    // initialize the Timer for fast scheduler 10ms
 
-    TCCR1A = 0;
+	// initialize the Timer for fast scheduler 10ms
+	TCCR1A = 0;
     1df2:	10 92 80 00 	sts	0x0080, r1
 	TCCR1B |= _BV (1);       // CC11 setzt prescaler 8
     1df6:	e1 e8       	ldi	r30, 0x81	; 129
@@ -3061,7 +3061,7 @@ int main(void)
     1e08:	9e e4       	ldi	r25, 0x4E	; 78
     1e0a:	90 93 89 00 	sts	0x0089, r25
     1e0e:	80 93 88 00 	sts	0x0088, r24
-    TIMSK1 |= _BV (OCIE1A);  // Interrupt für Compare Timer 1 freigeben
+	TIMSK1 |= _BV (OCIE1A);  // Interrupt für Compare Timer 1 freigeben
     1e12:	ef e6       	ldi	r30, 0x6F	; 111
     1e14:	f0 e0       	ldi	r31, 0x00	; 0
     1e16:	80 81       	ld	r24, Z
@@ -3080,11 +3080,7 @@ int main(void)
 	OCR0A =  50; // brightness for back light.
     1e24:	82 e3       	ldi	r24, 0x32	; 50
     1e26:	87 bd       	out	0x27, r24	; 39
-	
-	
-	
 
-	
 	DOG.init();
     1e28:	83 ee       	ldi	r24, 0xE3	; 227
     1e2a:	95 e0       	ldi	r25, 0x05	; 5
@@ -3172,7 +3168,6 @@ int main(void)
     1e8c:	00 c0       	rjmp	.+0      	; 0x1e8e <main+0xa0>
     1e8e:	00 00       	nop
 	
-
 	_delay_ms(2000);
     MEM01.clear();
     1e90:	83 ee       	ldi	r24, 0xE3	; 227
@@ -3181,7 +3176,7 @@ int main(void)
 	screen_nr = 1;
     1e96:	81 e0       	ldi	r24, 0x01	; 1
     1e98:	80 93 a6 01 	sts	0x01A6, r24
-	sei ();                  // Interrupt Freigabe global
+	sei ();                  // Interrupt release global
     1e9c:	78 94       	sei
 		return key::key_state;
 	}
@@ -3236,16 +3231,16 @@ int main(void)
     1ed0:	fc e7       	ldi	r31, 0x7C	; 124
     1ed2:	8f 2e       	mov	r8, r31
     1ed4:	f0 2d       	mov	r31, r0
-
-
+							CAN1.Can_FlowControl_TP(tpCell1);
+						}
 				break;
 				case 3: SCR03.update(CAN1,MEM01);
 				break;
 				default: screen_nr = 1;
     1ed6:	bb 24       	eor	r11, r11
     1ed8:	b3 94       	inc	r11
-	sei ();                  // Interrupt Freigabe global
-	
+	screen_nr = 1;
+	sei ();                  // Interrupt release global
 	
    while (1)
    {
@@ -3258,7 +3253,6 @@ int main(void)
 		{
 			old_count100ms = count_100ms;
     1ee8:	80 93 a8 01 	sts	0x01A8, r24
-		
 			switch (screen_nr)
     1eec:	80 91 a6 01 	lds	r24, 0x01A6
     1ef0:	82 30       	cpi	r24, 0x02	; 2
@@ -3336,8 +3330,6 @@ int main(void)
     1f70:	0e 94 a2 06 	call	0xd44	; 0xd44 <_ZN12CAN_Twizplay18Can_FlowControl_TPEh>
     1f74:	0a c0       	rjmp	.+20     	; 0x1f8a <main+0x19c>
 						}
-
-
 				break;
 				case 3: SCR03.update(CAN1,MEM01);
     1f76:	43 ee       	ldi	r20, 0xE3	; 227
@@ -3417,10 +3409,6 @@ int main(void)
     1fe8:	87 b5       	in	r24, 0x27	; 39
     1fea:	8b 5f       	subi	r24, 0xFB	; 251
     1fec:	87 bd       	out	0x27, r24	; 39
-
-// alive...            
-//			dtostrf(old_count100ms,3,0,string);
-//			MEM01.string(110,60,font_4x6,string);
 			
 			MEM01.send(DOG);
     1fee:	63 ee       	ldi	r22, 0xE3	; 227
@@ -3449,7 +3437,7 @@ int main(void)
     2006:	cf cf       	rjmp	.-98     	; 0x1fa6 <main+0x1b8>
 
 00002008 <__vector_12>:
-	
+    _delay_us(1);
    }
 }
 
@@ -3496,7 +3484,6 @@ ISR(TIMER1_COMPA_vect)
     2052:	8d ec       	ldi	r24, 0xCD	; 205
     2054:	91 e0       	ldi	r25, 0x01	; 1
     2056:	72 da       	rcall	.-2844   	; 0x153c <_ZN12CAN_screen0110update10msER12CAN_Twizplay>
-			  
 		  
 	  		  count_10ms++;
     2058:	80 91 a7 01 	lds	r24, 0x01A7
@@ -3504,10 +3491,10 @@ ISR(TIMER1_COMPA_vect)
 			  if (count_10ms == 10)
     205e:	8a 30       	cpi	r24, 0x0A	; 10
     2060:	19 f0       	breq	.+6      	; 0x2068 <__vector_12+0x60>
+			  KEY01.update(); 
 			  KEY02.update();
 			  KEY03.update();
 			  SCR01.update10ms(CAN1);
-			  
 		  
 	  		  count_10ms++;
     2062:	80 93 a7 01 	sts	0x01A7, r24
@@ -3526,8 +3513,6 @@ ISR(TIMER1_COMPA_vect)
     207a:	85 36       	cpi	r24, 0x65	; 101
     207c:	08 f0       	brcs	.+2      	; 0x2080 <__vector_12+0x78>
     207e:	28 98       	cbi	0x05, 0	; 5
-
-
 }
     2080:	ff 91       	pop	r31
     2082:	ef 91       	pop	r30
@@ -3584,7 +3569,6 @@ ISR(CANIT_vect)
 			CANPAGE = (13<<4);          //  set CAN Page 13 (reserved for receive transport protocol).
     20da:	80 ed       	ldi	r24, 0xD0	; 208
     20dc:	80 93 ed 00 	sts	0x00ED, r24
-		        
 		    if (CANSTMOB & (1<<RXOK))   //  receive OK
     20e0:	80 91 ee 00 	lds	r24, 0x00EE
     20e4:	85 ff       	sbrs	r24, 5
@@ -3612,7 +3596,6 @@ ISR(CANIT_vect)
 		    }
 		    CANPAGE = save_canpage;     //  restore CANPAGE
     2110:	c0 93 ed 00 	sts	0x00ED, r28
-
 	  }
 	  
       if (CANSIT1 & (1<<SIT14))         //  only Interrupt on MOB 14 is for transport protocol TX
@@ -3623,7 +3606,6 @@ ISR(CANIT_vect)
 		  CANPAGE = (14<<4);            //  set CAN Page 14 (reserved for transmit transport protocol). 
     211c:	80 ee       	ldi	r24, 0xE0	; 224
     211e:	80 93 ed 00 	sts	0x00ED, r24
-	  
 		  if (CANSTMOB & (1<<TXOK))     //  transmit OK
     2122:	80 91 ee 00 	lds	r24, 0x00EE
     2126:	86 ff       	sbrs	r24, 6
@@ -3644,10 +3626,7 @@ ISR(CANIT_vect)
 		  }
 		  CANPAGE = save_canpage;       //  restore CANPAGE
     213e:	c0 93 ed 00 	sts	0x00ED, r28
-
 	  }
-
-   
     2142:	ff 91       	pop	r31
     2144:	ef 91       	pop	r30
     2146:	cf 91       	pop	r28
